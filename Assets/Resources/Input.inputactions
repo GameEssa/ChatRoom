@@ -1,0 +1,33 @@
+{
+    "name": "Input",
+    "maps": [
+        {
+            "name": "Platform",
+            "id": "4dcf7cf4-41ac-4a76-a855-17ed85066c67",
+            "actions": [
+                {
+                    "name": "Send",
+                    "type": "Button",
+                    "id": "0771dbbe-de32-4efa-8c17-1dd9785ae232",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "65f483bc-2f0b-475c-83da-406665b3dbde",
+                    "path": "<Keyboard>/p",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Send",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        }
+    ],
+    "controlSchemes": []
+}
