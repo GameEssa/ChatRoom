@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Core.Utils;
 using UnityEngine;
@@ -36,7 +37,7 @@ namespace Core.Net
 				return;
 			}
 
-			var numberBytes = BytesConvert.GetBytes( number );
+			var numberBytes = BytesConvert.GetBytes( number , false );
 
 			Array.Copy( numberBytes, 0, _cacheBytes, _position, sizeof( Int32 ) );
 			_position = toLength;

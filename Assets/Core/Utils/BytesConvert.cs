@@ -7,17 +7,18 @@ namespace Core.Utils
 {
 	public static class BytesConvert
 	{
-		public static byte[] GetBytes( Int32  number )
+		public static byte[] GetBytes( Int32  number, bool lendian = true )
 		{
-			using ( var memoryStream = new MemoryStream() )
+			byte[] bytes = BitConverter.GetBytes(number);
+			if ( BitConverter.IsLittleEndian == true && lendian == false)
 			{
-				using ( var writer = new BinaryWriter(memoryStream) )
-				{
-					writer.Write( number );
-					return memoryStream.GetBuffer();
-				}
+				Array.Reverse(bytes, 0, bytes.Length);
 			}
+
+			return bytes;
 		}
+
+
 
 		public static byte[] GetBytes( string str )
 		{
