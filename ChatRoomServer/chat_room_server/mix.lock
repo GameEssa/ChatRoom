@@ -1,0 +1,6 @@
+%{
+  "exprotobuf": {:hex, :exprotobuf, "1.0.2", "71056a3547eb37e53d64d892d4bc7a5d8d6355f48070e646357c6ed64571bfea", [:mix], [{:gpb, "~> 3.23.2", [hex: :gpb, repo: "hexpm", optional: false]}], "hexpm", "3f315c50b08ca1fdc1bee1af28a513849151e36297e9d55d97de293cc3d3f2a2"},
+  "google_protos": {:hex, :google_protos, "0.1.0", "c6b9e12092d17571b093d4156d004494ca143b65dbbcbfc3ffff463ea03467c0", [:mix], [{:protobuf, "~> 0.5", [hex: :protobuf, repo: "hexpm", optional: false]}], "hexpm", "ff5564525f89d2638a4cfa9fb4d31e9ee9d9d7cb937b3e8a95f558440c039e1b"},
+  "gpb": {:hex, :gpb, "3.23.2", "dfabca052f8f4a8c6f98d43c6653e0037416537a9e5a747019f4ef53713982e3", [:make, :rebar], [], "hexpm", "b1042b421ceaa5cd8ced32b10c68ac882359f0a3114fa974159a5843d25dd12b"},
+  "protobuf": {:hex, :protobuf, "0.7.1", "7d1b9f7d9ecb32eccd96b0c58572de4d1c09e9e3bc414e4cb15c2dce7013f195", [:mix], [], "hexpm", "6eff7a5287963719521c82e5d5b4583fd1d7cdd89ad129f0ea7d503a50a4d13f"},
+}

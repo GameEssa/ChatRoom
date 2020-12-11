@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Core.Net
 {
-	public class MessageConvert
+	public class PackBytesPipe
 	{
 		private byte[] _cacheBytes = new byte[8 * 1024];
 

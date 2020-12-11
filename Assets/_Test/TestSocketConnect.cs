@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Net;
-using System.Net.Configuration;
 using System.Net.Sockets;
-using System.Runtime.InteropServices;
+using System.Text;
 using Core.Net;
-using Core.Utils;
+using Data.Message;
+using Google.Protobuf.WellKnownTypes;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -15,6 +12,8 @@ public class TestSocketConnect : MonoBehaviour
 	private TcpSocketConnect tcpConnect ;
     // Start is called before the first frame update
     private Socket socket;
+
+    private bool send = false;
 
 	private void Awake()
 	{
@@ -34,10 +33,30 @@ public class TestSocketConnect : MonoBehaviour
 
     public void Send( InputAction.CallbackContext context )
     {
-	    if ( tcpConnect.isConnect )
+	    if ( tcpConnect.isConnect && send == false)
 	    {
-		    var msg = BytesConvert.GetBytes( "Hello World" );
-		    tcpConnect.SendMessage( "Essa", msg);
+			//var msg = BytesConvert.GetBytes( "Hello World" );
+			//tcpConnect.SendMessage( "Essa", msg);
+
+			byte[] bytes = Encoding.UTF8.GetBytes("中文");
+			var myString = Encoding.UTF8.GetString(bytes);
+			Data.Message.Dialogue dilDialogue = new Dialogue()
+			{
+				Tag = "send_dialogue",
+				Sender = "Essa",
+				//SenderTime = Timestamp.FromDateTime(DateTime.UtcNow),
+				Message = myString
+			};
+			tcpConnect.SendMessage( dilDialogue );
+			send = true;
+
 	    }
+
+
     }
+
+	private void Update()
+	{
+		tcpConnect.DoUpdate();
+	}
 }

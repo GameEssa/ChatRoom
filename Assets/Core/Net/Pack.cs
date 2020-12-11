@@ -1,17 +1,28 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Net.Sockets;
 using UnityEngine;
 
 namespace Core.Net
 {
-	public abstract class Pack : IPack
+	public class Pack : IPack
 	{
+		private int _length = 0;
+
+		private int _currentReadPos = 0;
+
 		public byte[] data { get; private set; }
 
 		public byte[] origin { get; private set; }
 
 		public string tag { get; private set; }
+
+		public Pack( int length )
+		{
+			_length = length;
+			origin = new byte[length];
+		}
 
 		public void Parse( byte[] bytes )
 		{
@@ -35,6 +46,25 @@ namespace Core.Net
 			Array.Copy( origin, 2 * size + tagLength , data, 0 , length - (2 * size + tagLength));
 
 			tag = BitConverter.ToString( bytes, 2 * size , tagLength );
+		}
+
+		public void Parse()
+		{
+			if ( origin.Length < 4 )
+			{
+				Debug.LogError( "current pack length < 4" );
+				return;
+			}
+
+			Array.Copy( origin, 4, data, 0 , _length - 4 );
+		}
+
+		public bool Read( NetworkStream stream )
+		{
+			var count = stream.Read( origin, _currentReadPos, _length - _currentReadPos );
+			_currentReadPos += count;
+
+			return _currentReadPos == _length;
 		}
 	}
 }

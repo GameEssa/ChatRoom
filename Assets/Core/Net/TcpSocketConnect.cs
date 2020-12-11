@@ -1,10 +1,12 @@
 ﻿using System;
 using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using Core.Net;
+using Data.Message;
+using Google.Protobuf;
 
 namespace Core.Net
 {
@@ -20,7 +22,13 @@ namespace Core.Net
 
 		private bool _connect = false;
 
-		private MessageConvert _convert = null;
+		private PackBytesPipe _pipe = null;
+
+		private byte[] _reveives = new byte[4];
+
+		private int _lengthPos = 0;
+
+		private Pack _readPack = null;
 
 		public bool isConnect
 		{
@@ -37,7 +45,7 @@ namespace Core.Net
 
 			_ip = ip;
 			_port = port;
-			_convert = new MessageConvert();
+			_pipe = new PackBytesPipe();
 		}
 
 		public void Close()
@@ -66,6 +74,61 @@ namespace Core.Net
 			{
 				throw new Exception("close socket connect error");
 			}
+		}
+
+		internal void DoUpdate()
+		{
+			if ( _socket == null || _stream == null )
+			{
+				return;
+			}
+
+			if ( _stream.DataAvailable == false || _stream.CanRead == false )
+			{
+				return;
+			}
+
+			/*if ( _readPack == null )
+			{
+				Debug.Log( _socket.Available );
+				var count = _stream.Read( _reveives, _lengthPos, 4 - _lengthPos );
+				_lengthPos += count;
+				if ( _lengthPos >= 4 )
+				{
+
+					var size = BitConverter.ToInt32( _reveives , 0 );
+					Array.Reverse(_reveives);
+					_readPack = new Pack( size );
+					_lengthPos = 0;
+					Debug.Log(size);
+				}
+			}*/
+
+			Debug.Log(_socket.Available);
+			byte[] read = new byte[_socket.Available];
+			var count = _stream.Read(read, 0, _socket.Available);
+			var dialogue = Data.Message.Dialogue.Parser.ParseFrom( read );
+
+			Debug.Log( dialogue.ToString() );
+			//if ( _readPack != null )
+			//{
+			//	var complete = _readPack.Read( _stream );
+
+			//	if ( complete == true )
+			//	{
+			//		this.SampleOutput( _readPack );
+			//		_readPack = null;
+			//	}
+
+			//}
+
+		}
+
+		private void SampleOutput( Pack pack )
+		{
+			pack.Parse();
+			var msg = Data.Message.Dialogue.Parser.ParseFrom( pack.data );
+			Debug.Log( msg.ToString() );
 		}
 
 		public void Connect()
@@ -104,25 +167,41 @@ namespace Core.Net
 
 		public void SendMessage( string tag, byte[] bytes )
 		{
-
 			var tagBytes = Encoding.UTF8.GetBytes( tag );
 			var tagLength = tagBytes.Length;
 
 			var total = 2 * sizeof( Int32 ) + tagLength + bytes.Length;
 
-			_convert.Clear();
-			_convert.Put( total );
-			_convert.Put( tagLength );
-			_convert.Put( tagBytes );
-			_convert.Put( bytes );
+			_pipe.Clear();
+			_pipe.Put( total );
+			_pipe.Put( tagLength );
+			_pipe.Put( tagBytes );
+			_pipe.Put( bytes );
 
-			Debug.Log( $"{_convert.position} : buffer write" );
+			Debug.Log( $"{_pipe.position} : buffer write" );
 			//_stream.Write( _convert.cacheBytes, 0, _convert.position);
 
 			byte[] buffer = new byte[total];
-			Array.Copy( _convert.cacheBytes, 0, buffer, 0, total );
+			Array.Copy( _pipe.cacheBytes, 0, buffer, 0, total );
 
 			_socket.Send( buffer );
+		}
+
+		public void SendMessage( Google.Protobuf.IMessage message )
+		{
+			var length = message.CalculateSize();
+			var bytes = message.ToByteArray();
+			_pipe.Clear();
+			_pipe.Put( length );
+			_pipe.Put( bytes );
+			try
+			{
+				_stream.Write(_pipe.cacheBytes, 0, _pipe.position);
+			}
+			catch (Exception e)
+			{
+				throw new Exception($" Send message to server error :\n { e.StackTrace }");
+			}
 		}
 	}
 }

@@ -1,0 +1,10 @@
+syntax = "proto3";
+package Data.Message;
+//import "google/protobuf/timestamp.proto";
+
+message Dialogue {
+    string tag = 1;
+    string sender = 2;
+    //google.protobuf.Timestamp SenderTime = 3;
+    string message = 4; 
+}

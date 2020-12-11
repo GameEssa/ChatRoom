@@ -10,10 +10,10 @@ namespace Core.Utils
 		public static byte[] GetBytes( Int32  number, bool lendian = true )
 		{
 			byte[] bytes = BitConverter.GetBytes(number);
-			if ( BitConverter.IsLittleEndian == true && lendian == false)
+			/*if ( BitConverter.IsLittleEndian == true && lendian == false)
 			{
 				Array.Reverse(bytes, 0, bytes.Length);
-			}
+			}*/
 
 			return bytes;
 		}
