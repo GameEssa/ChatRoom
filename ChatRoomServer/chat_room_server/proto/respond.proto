@@ -1,0 +1,14 @@
+syntax = "proto3";
+package Data.Message;
+
+message Respond {
+    State state = 1;
+}
+
+enum State{
+    none = 0;
+    ok = 1;
+    fail = 2;
+    error = 3;
+    timeout = 4;
+}

@@ -56,7 +56,7 @@ namespace Core.Net
 				return;
 			}
 
-			Array.Copy( origin, 4, data, 0 , _length - 4 );
+			this.Parse( origin );
 		}
 
 		public bool Read( NetworkStream stream )

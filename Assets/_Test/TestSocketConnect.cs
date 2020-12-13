@@ -47,7 +47,7 @@ public class TestSocketConnect : MonoBehaviour
 				//SenderTime = Timestamp.FromDateTime(DateTime.UtcNow),
 				Message = myString
 			};
-			tcpConnect.SendMessage( dilDialogue );
+			tcpConnect.SendMessage( "dialogue", dilDialogue );
 			send = true;
 
 	    }

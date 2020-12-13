@@ -1,0 +1,12 @@
+syntax = "proto3";
+package Data.Message;
+
+message Room {
+    string owner = 1;
+    string name = 2;
+    repeated string participants = 3; 
+}
+
+message RoomList{
+    repeated Room rooms = 1;
+}

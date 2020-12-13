@@ -30,6 +30,8 @@ namespace Core.Net
 
 		private Pack _readPack = null;
 
+		private Dictionary<string, Func<Pack, bool>> handles = new Dictionary<string, Func<Pack, bool>>();
+
 		public bool isConnect
 		{
 			get { return _connect; }
@@ -48,106 +50,18 @@ namespace Core.Net
 			_pipe = new PackBytesPipe();
 		}
 
-		public void Close()
-		{
-			try
-			{
-				if (_socket.Available > 0)
-				{
-					var pack = this.TryPackToHandle();
-					while (pack)
-					{
-						pack = this.TryPackToHandle();
-					}
-				}
-
-				_stream.Dispose();
-				_stream.Close();
-
-				_socket.Close();
-
-				_stream = null;
-				_socket = null;
-				_connect = false;
-			}
-			catch
-			{
-				throw new Exception("close socket connect error");
-			}
-		}
-
-		internal void DoUpdate()
-		{
-			if ( _socket == null || _stream == null )
-			{
-				return;
-			}
-
-			if ( _stream.DataAvailable == false || _stream.CanRead == false )
-			{
-				return;
-			}
-
-			/*if ( _readPack == null )
-			{
-				Debug.Log( _socket.Available );
-				var count = _stream.Read( _reveives, _lengthPos, 4 - _lengthPos );
-				_lengthPos += count;
-				if ( _lengthPos >= 4 )
-				{
-
-					var size = BitConverter.ToInt32( _reveives , 0 );
-					Array.Reverse(_reveives);
-					_readPack = new Pack( size );
-					_lengthPos = 0;
-					Debug.Log(size);
-				}
-			}*/
-
-			Debug.Log(_socket.Available);
-			byte[] read = new byte[_socket.Available];
-			var count = _stream.Read(read, 0, _socket.Available);
-			var dialogue = Data.Message.Dialogue.Parser.ParseFrom( read );
-
-			Debug.Log( dialogue.ToString() );
-			//if ( _readPack != null )
-			//{
-			//	var complete = _readPack.Read( _stream );
-
-			//	if ( complete == true )
-			//	{
-			//		this.SampleOutput( _readPack );
-			//		_readPack = null;
-			//	}
-
-			//}
-
-		}
-
-		private void SampleOutput( Pack pack )
-		{
-			pack.Parse();
-			var msg = Data.Message.Dialogue.Parser.ParseFrom( pack.data );
-			Debug.Log( msg.ToString() );
-		}
-
 		public void Connect()
 		{
-			var endPoint = new IPEndPoint( IPAddress.Parse( _ip ), _port );
-			var socket = new Socket( AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp );
+			var endPoint = new IPEndPoint(IPAddress.Parse(_ip), _port);
+			var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 			socket.NoDelay = true;
-			socket.BeginConnect( endPoint, ConnectCallback, socket );
+			socket.BeginConnect(endPoint, ConnectCallback, socket);
 			_socket = socket;
-		}
-
-		private bool TryPackToHandle()
-		{
-			return false;
 		}
 
 		private void ConnectCallback( IAsyncResult result )
 		{
-			_socket.EndConnect( result );
+			_socket.EndConnect(result);
 			if (_socket == null)
 			{
 				Debug.LogError("try use empty socket to initial connect stream");
@@ -165,35 +79,123 @@ namespace Core.Net
 			}
 		}
 
-		public void SendMessage( string tag, byte[] bytes )
+		public void Close()
 		{
-			var tagBytes = Encoding.UTF8.GetBytes( tag );
-			var tagLength = tagBytes.Length;
+			try
+			{	
+				_stream.Dispose();
+				_stream.Close();
 
-			var total = 2 * sizeof( Int32 ) + tagLength + bytes.Length;
+				_socket.Close();
 
-			_pipe.Clear();
-			_pipe.Put( total );
-			_pipe.Put( tagLength );
-			_pipe.Put( tagBytes );
-			_pipe.Put( bytes );
-
-			Debug.Log( $"{_pipe.position} : buffer write" );
-			//_stream.Write( _convert.cacheBytes, 0, _convert.position);
-
-			byte[] buffer = new byte[total];
-			Array.Copy( _pipe.cacheBytes, 0, buffer, 0, total );
-
-			_socket.Send( buffer );
+				_stream = null;
+				_socket = null;
+				_connect = false;
+			}
+			catch
+			{
+				throw new Exception("close socket connect error");
+			}
 		}
 
-		public void SendMessage( Google.Protobuf.IMessage message )
+		public void DoUpdate()
 		{
-			var length = message.CalculateSize();
-			var bytes = message.ToByteArray();
+			if ( _socket == null || _stream == null || !_socket.Connected)
+			{
+				return;
+			}
+
+			while ( true )
+			{
+
+				if ( _stream.DataAvailable == false || _stream.CanRead == false )
+				{
+					return;
+				}
+
+				if ( _readPack == null )
+				{
+					var count = _stream.Read( _reveives, _lengthPos, 4 - _lengthPos );
+					_lengthPos += count;
+					if (_lengthPos >= 4)
+					{
+						var size = BitConverter.ToInt32( _reveives, 0 );
+						//big to little
+						Array.Reverse( _reveives );
+						_readPack = new Pack( size );
+						_lengthPos = 0;
+					}
+					else
+					{
+						//current can not create a pack wait next packet
+						break;
+					}
+				}
+
+				if ( _readPack != null )
+				{
+					var complete = _readPack.Read( _stream );
+					if ( complete == true )
+					{
+						this.TryPackToHandle( _readPack );
+						_readPack = null;
+					}
+					else
+					{
+						//current can not create a pack wait next packet
+						break;
+					}
+				}
+			}
+		}
+
+		public void RegisterHandle( string tag, Func<Pack, bool> func )
+		{
+			if ( handles.ContainsKey(tag) )
+			{
+				Debug.LogWarning( "registerHandle twice" );
+				return;
+			}
+			handles.Add( tag, func );
+		}
+
+		public void UnRegisterHandle( string tag )
+		{
+			handles.Remove( tag );
+		}
+
+		public void SendMessage( string tag, Google.Protobuf.IMessage message )
+		{
+			if ( string.IsNullOrEmpty(tag) )
+			{
+				return;
+			}
+
+			var tagBytes = Encoding.UTF8.GetBytes(tag);
+			var tagLength = tagBytes.Length;
+
+			var length = 0;
+			byte[] bytes = null;
+
+			if ( message != null )
+			{
+				length = message.CalculateSize();
+				bytes = message.ToByteArray();
+			}
+
+			var totalLength = length + tagLength + 2 * sizeof( Int32 ) ;
+
 			_pipe.Clear();
-			_pipe.Put( length );
-			_pipe.Put( bytes );
+			_pipe.Put( totalLength );
+
+			_pipe.Put( tagLength );
+			_pipe.Put( tag );
+
+			if (bytes != null)
+			{
+				_pipe.Put(bytes);
+			}
+
 			try
 			{
 				_stream.Write(_pipe.cacheBytes, 0, _pipe.position);
@@ -202,6 +204,23 @@ namespace Core.Net
 			{
 				throw new Exception($" Send message to server error :\n { e.StackTrace }");
 			}
+		}
+
+		private bool TryPackToHandle( Pack pack )
+		{
+			pack.Parse();
+
+			if (string.IsNullOrEmpty(pack.tag))
+			{
+				return false;
+			}
+
+			if (handles.TryGetValue(pack.tag, out var func) == false)
+			{
+				return false;
+			}
+
+			return func.Invoke(pack);
 		}
 	}
 }
