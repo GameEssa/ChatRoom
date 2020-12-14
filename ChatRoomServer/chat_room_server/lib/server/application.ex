@@ -10,9 +10,7 @@ defmodule Server.Application do
     children = [
       # Starts a worker by calling: ServServerer.Worker.start_link(arg)
       # {Server.Worker, arg}
-      { Task.Supervisor, name: Server.TaskSupervisor },
-
-      { Server.Supervisor , [] },
+      { Server.Supervisor , [] }
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

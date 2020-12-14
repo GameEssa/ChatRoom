@@ -2,10 +2,10 @@ syntax = "proto3";
 package Data.Message;
 
 message Respond {
-    State state = 1;
+    Netstate state = 1;
 }
 
-enum State{
+enum Netstate{
     none = 0;
     ok = 1;
     fail = 2;

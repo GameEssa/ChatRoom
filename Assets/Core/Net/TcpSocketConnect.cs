@@ -55,7 +55,7 @@ namespace Core.Net
 			var endPoint = new IPEndPoint(IPAddress.Parse(_ip), _port);
 			var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 			socket.NoDelay = true;
-			socket.BeginConnect(endPoint, ConnectCallback, socket);
+			socket.BeginConnect(endPoint, ConnectCallback, socket );
 			_socket = socket;
 		}
 
@@ -119,10 +119,10 @@ namespace Core.Net
 					_lengthPos += count;
 					if (_lengthPos >= 4)
 					{
-						var size = BitConverter.ToInt32( _reveives, 0 );
 						//big to little
 						Array.Reverse( _reveives );
-						_readPack = new Pack( size );
+						var size = BitConverter.ToInt32( _reveives, 0 );
+						_readPack = new Pack( size - sizeof(Int32) );
 						_lengthPos = 0;
 					}
 					else

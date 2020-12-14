@@ -73,5 +73,10 @@ namespace Core.Net
 		{
 
 		}
+
+		public void Connect( Action callback )
+		{
+			throw new NotImplementedException();
+		}
 	}
 }

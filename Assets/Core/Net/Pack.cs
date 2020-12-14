@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Net.Sockets;
+using System.Text;
 using UnityEngine;
 
 namespace Core.Net
@@ -33,19 +34,24 @@ namespace Core.Net
 
 			var size = sizeof( Int32 );
 
-			if (bytes.Length < 2 * size)
+			if (bytes.Length < size)
 			{
 				throw new Exception( "build pack with bytes length less than 8 { head length + tag length }" );
 			}
 
 			this.origin = bytes;
+			byte[] tagBytes = new byte[size];
+			Array.Copy( origin, 0, tagBytes, 0, size );
+			Array.Reverse( tagBytes );
 
-			var length = BitConverter.ToInt32( bytes, 0 );
-			var tagLength = BitConverter.ToInt32( bytes, size );
+			var tagLength = BitConverter.ToInt32( tagBytes, 0 );
+			var dataLength = _length - (size + tagLength);
 
-			Array.Copy( origin, 2 * size + tagLength , data, 0 , length - (2 * size + tagLength));
+			data = new byte[dataLength];
+			Array.Copy( origin, size + tagLength , data, 0 , dataLength  );
 
-			tag = BitConverter.ToString( bytes, 2 * size , tagLength );
+			//tag = BitConverter.ToString( bytes, size , tagLength );
+			tag = Encoding.UTF8.GetString( bytes, size, tagLength );
 		}
 
 		public void Parse()
