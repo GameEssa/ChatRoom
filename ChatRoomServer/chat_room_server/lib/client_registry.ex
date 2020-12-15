@@ -1,12 +1,11 @@
-defmodule RoomRegistry do
+defmodule ClientRegistry do
   use GenServer
-
 
   def handle_call( {:create, name}, _form, {names, refs} ) do
     case lookup( names, name ) do
       {:ok, pid} -> {:reply, pid, {names, refs}}
       :error ->
-        {:ok, pid} = DynamicSupervisor.start_child( RoomRegistry.Supervisor, RoomAgent )
+        {:ok, pid} = DynamicSupervisor.start_child( ClientRegistry.Supervisor, ClientAgent )
         ref = Process.monitor( pid )
         refs = Map.put( refs, ref, name )
         :ets.insert( names, {name, pid} )
@@ -45,6 +44,7 @@ defmodule RoomRegistry do
   end
 
   def create(server, name) do
-    GenServer.call( server, {:create, name} )
+    GenServer.call(server, {:create, name})
   end
+
 end

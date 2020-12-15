@@ -1,0 +1,6 @@
+syntax = "proto3";
+package Data.Message;
+
+message User {
+    string userId = 1;
+}

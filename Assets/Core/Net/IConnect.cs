@@ -8,6 +8,6 @@ namespace Core.Net
 
 		void Connect();
 
-		void Close();
+		void Disconnect();
 	}
 }

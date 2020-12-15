@@ -79,7 +79,7 @@ namespace Core.Net
 			}
 		}
 
-		public void Close()
+		public void Disconnect()
 		{
 			try
 			{	

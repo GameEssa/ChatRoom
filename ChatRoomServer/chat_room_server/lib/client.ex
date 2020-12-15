@@ -13,7 +13,6 @@ defmodule Client do
     {:noreply, state}
   end
 
-
   def handle_info({ :error,_ }, state = [ socket: client_socket, process: pid, server: server ]) do
     send(server, {:disconnect, self(), client_socket })
     :gen_tcp.shutdown(client_socket, :read_write)

@@ -1,4 +1,4 @@
-defmodule Server.Supervisor do
+defmodule ClientRegistry.Supervisor do
   use Supervisor
 
   def start_link( opts ) do
@@ -9,10 +9,8 @@ defmodule Server.Supervisor do
 
   def init( :ok ) do
     children = [
-      { RoomRegistry.Supervisor, [] },
-      { ClientRegistry.Supervisor, []},
-      { Task.Supervisor, name: Server.TaskSupervisor },
-      { Server, [port: 8101] }
+      { DynamicSupervisor, strategy: :one_for_one , name: ClientRegistry.Supervisor },
+      { ClientRegistry, name: ClientRegistry}
     ]
 
     Supervisor.init(children, strategy: :one_for_one)

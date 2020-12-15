@@ -13,9 +13,6 @@ namespace Core
 
 		private Button _button;
 
-		[SerializeField]
-		private float _wait = 0.5f;
-
 		private bool _transition = false;
 
 		public Button button

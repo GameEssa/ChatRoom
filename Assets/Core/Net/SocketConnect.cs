@@ -40,7 +40,7 @@ namespace Core.Net
 
 		public abstract bool HandleStream();
 
-		public void Close()
+		public void Disconnect()
 		{
 			_connect = false;
 			try

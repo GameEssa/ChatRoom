@@ -112,7 +112,7 @@ namespace Core.Net
 
 			 if ( connect.isConnect )
 			 {
-				 connect.Close();
+				 connect.Disconnect();
 			 }
 
 			 _connects.Remove( connect );

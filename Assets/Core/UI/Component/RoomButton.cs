@@ -3,24 +3,36 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+[RequireComponent( typeof( Button ) )]
 public class RoomButton : MonoBehaviour
 {
 	[SerializeField]
-	private Text _nameText;
+	private Text _nameText = null;
 
 	[SerializeField]
-	private string _nameFormat;
+	private string _nameFormat = null;
 
 	[SerializeField]
-	private Text _ownerText;
+	private Text _ownerText = null;
 
 	[SerializeField]
-	private string _ownerFormat;
+	private string _ownerFormat = null;
 
+	private System.Action<string> _clickCallback = null;
 
 	private string _roomName;
 
-	public void Refresh(Data.Message.Room room)
+	private Button _button = null;
+
+	public Button ContactButton
+	{
+		get
+		{
+			return _button ?? ( _button = GetComponent<Button>() );
+		}
+	}
+
+	public void Refresh(Data.Message.Room room, System.Action<string> callback)
 	{
 		if( room == null )
 		{
@@ -28,6 +40,11 @@ public class RoomButton : MonoBehaviour
 			this.gameObject.SetActive( false );
 			return;
 		}
+
+		_clickCallback = callback;
+		_roomName = room.Name;
+
+		ContactButton.onClick.AddListener( OnTapButton );
 
 		if ( _nameText != null )
 		{
@@ -37,6 +54,14 @@ public class RoomButton : MonoBehaviour
 		if ( _ownerText != null )
 		{
 			_ownerText.text = string.Format( _ownerFormat, room.Owner );
+		}
+	}
+
+	private void OnTapButton()
+	{
+		if( !string.IsNullOrEmpty(_roomName) && _clickCallback != null )
+		{
+			_clickCallback.Invoke( _roomName );
 		}
 	}
 }

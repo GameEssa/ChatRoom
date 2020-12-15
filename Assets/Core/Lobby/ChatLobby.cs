@@ -21,6 +21,8 @@ namespace Core
 
 		private Room _room;
 
+		private string _loginTag = "Net.Message.Login";
+
 		private string _createRoomTag = "Net.Message.CreateRoom";
 
 		private string _getAllRoomTag = "Net.Message.GetAllRoom";
@@ -62,6 +64,20 @@ namespace Core
 
 		[SerializeField]
 		private RoomButton _roomButtonPrefab = null;
+
+		public void Login()
+		{
+			_id = "UnKnown";
+			if ( _idInputField != null )
+			{
+				_id = _idInputField.text;
+			}
+
+			User user = new User() { UserId = _id };
+
+			_server.RegisterHandle( _loginTag, this.LoginCallback );
+			_server.SendMessage( _loginTag, user );
+		}
 
 		public void GetAllRoom()
 		{
@@ -116,6 +132,32 @@ namespace Core
 			_server.SendMessage( _sendDialogueTag, dialogue );
 		}
 
+		private bool LoginCallback( Pack pack )
+		{
+			if (pack.tag != _loginTag )
+			{
+				return false;
+			}
+
+			MessageRespond respond = null;
+			if ( pack.data != null && pack.data.Length > 0 )
+			{
+				respond = MessageRespond.Parser.ParseFrom( pack.data );
+			}
+
+			if ( respond.RespondState == true )
+			{
+				_loginTransform.gameObject.SetActive( false );
+				_lobbyTransform.gameObject.SetActive( true );
+				_roomTransform.gameObject.SetActive( false );
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
+
 		private bool GetAllRoomCallback( Pack pack )
 		{
 			if ( pack.tag != _getAllRoomTag )
@@ -141,14 +183,21 @@ namespace Core
 			{
 				return false;
 			}
+			_server.UnRegisterHandle( _createRoomTag );
 
-			Room room = Room.Parser.ParseFrom( pack.data );
+			Room room = null;
+			if ( pack.data != null && pack.data.Length > 0 )
+			{
+				room = Room.Parser.ParseFrom( pack.data );
+			}
+
 			if ( room != null )
 			{
 				return true;
 			}
 			else
 			{
+				Debug.LogWarning( "Already have named room" );
 				return false;
 			}
 			
@@ -161,12 +210,16 @@ namespace Core
 				return false;
 			}
 
-			Respond respond = Respond.Parser.ParseFrom( pack.data );
+			Room room = null;
+			if ( pack.data != null )
+			{
+				room = Room.Parser.ParseFrom( pack.data );
+			}
 
 			_server.UnRegisterHandle( _enterRoomTag );
-			if ( respond.State == State.Ok )
+			if ( room != null )
 			{
-				_server.RegisterHandle( _receiveDialogueTag, this.ReceiveDialogueCallback );
+				//_server.RegisterHandle( _receiveDialogueTag, this.ReceiveDialogueCallback );
 				return true;
 			}
 			else
@@ -181,19 +234,7 @@ namespace Core
 			{
 				return false;
 			}
-
-			Respond respond = Respond.Parser.ParseFrom( pack.data );
-
-			_server.UnRegisterHandle( _exitRoomTag );
-			if ( respond.State == State.Ok )
-			{
-				_server.UnRegisterHandle( _receiveDialogueTag );
-				return true;
-			}
-			else
-			{
-				return false;
-			}
+			return false;
 		}
 
 		private bool SendMessageCallback( Pack pack )
@@ -203,16 +244,7 @@ namespace Core
 				return false;
 			}
 
-			Respond respond = Respond.Parser.ParseFrom( pack.data );
-			_server.UnRegisterHandle( _sendDialogueTag );
-			if ( respond.State == State.Ok )
-			{
-				return true;
-			}
-			else
-			{
-				return false;
-			}
+			return false;
 		}
 
 		private bool ReceiveDialogueCallback( Pack pack )
@@ -248,18 +280,22 @@ namespace Core
 			foreach ( var room in _roomList.Rooms )
 			{
 				var roomButton = GameObject.Instantiate<RoomButton>( _roomButtonPrefab, _roomsContainer );
-				roomButton.Refresh( room );
+				roomButton.Refresh( room, this.OnTapRoomButton );
 			}
+		}
 
+		private void OnTapRoomButton(string roomName)
+		{
+			Room fakeRoom = new Room()
+			{
+				Name = roomName,
+				Owner = _id,
+			};
+			this.EnterRoom( fakeRoom );
 		}
 
 		private void ConnectServer()
 		{
-			_id = "UnKnown";
-			if ( _idInputField  != null )
-			{
-				_id = _idInputField.text;
-			}
 			_server = new TcpSocketConnect( "127.0.0.1", 8101 );
 			StartCoroutine( "CorConnect" );
 			_server.Connect();
@@ -267,25 +303,14 @@ namespace Core
 
 		private void ConnectServerCallback()
 		{
-			_loginTransform.gameObject.SetActive( false );
-			_lobbyTransform.gameObject.SetActive( true );
+			_loginTransform.gameObject.SetActive( true );
+			_lobbyTransform.gameObject.SetActive( false );
 			_roomTransform.gameObject.SetActive( false );
-		}
 
-		IEnumerator CorConnect()
-		{
-			while ( _server.isConnect == false )
-			{
-				yield return null;
-			}
-			ConnectServerCallback();
-		}
 
-		private void Awake()
-		{
 			if ( _connectbButton != null )
 			{
-				_connectbButton.onClick.AddListener( this.ConnectServer );
+				_connectbButton.onClick.AddListener( this.Login );
 			}
 
 			if ( _createRoomButton != null )
@@ -299,12 +324,31 @@ namespace Core
 			}
 		}
 
+		IEnumerator CorConnect()
+		{
+			while ( _server.isConnect == false )
+			{
+				yield return null;
+			}
+			ConnectServerCallback();
+		}
+
+		private void Awake()
+		{
+			this.ConnectServer();
+		}
+
 		private void Update()
 		{
 			if ( _server != null && _server.isConnect == true )
 			{
 				_server.DoUpdate();
 			}
+		}
+
+		private void OnApplicationQuit()
+		{
+			_server.Disconnect();
 		}
 	}
 }
