@@ -25,7 +25,11 @@ defmodule Server do
     IO.puts("Disconnect #{inspect clientPid}")
     #:ets.delete(:clientList, pid)
     {:ok, agent} = ClientRegistry.lookup(ClientRegistry, :client_map)
+    id = ClientAgent.get_client(agent, socket)
     ClientAgent.delete_client(agent, socket)
+
+    {:ok, roomAgent} = RoomRegistry.lookup(RoomRegistry, :room_list);
+    RoomAgent.delete_user(roomAgent, id);
     :gen_tcp.close(socket)
     Process.exit(clientPid, :normal)
     {:noreply, state}

@@ -26,4 +26,16 @@ defmodule RoomAgent do
   def lookup(agent, key) do
     Agent.get(agent, fn map -> Map.has_key?(map, key) end)
   end
+
+
+  def delete_user(agent, id) do
+    Agent.update(agent, fn map ->
+      for {k , room} <- map , into: %{} do
+        %Data.Message.Room{name: _name, owner: _owner, participants: part }  = room
+        newPart = List.delete(part, id)
+        newroom = Map.update(room, :participants, part, fn _oldvalue -> newPart end)
+        {k, newroom}
+      end
+      end)
+  end
 end
