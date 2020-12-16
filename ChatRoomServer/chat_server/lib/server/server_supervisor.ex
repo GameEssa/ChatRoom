@@ -9,9 +9,8 @@ defmodule Server.Supervisor do
 
   def init( :ok ) do
     children = [
-      { RoomRegistry.Supervisor, [] },
-      { ClientRegistry.Supervisor, []},
       { DynamicSupervisor, strategy: :one_for_one, name: Server.DynamicSupervisor},
+      { UserRegistry.Supervisor, []},
       { Server, [port: 8101] }
     ]
 

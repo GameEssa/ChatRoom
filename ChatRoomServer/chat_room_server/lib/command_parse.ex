@@ -58,17 +58,74 @@ defmodule CommandParse do
 
     {:ok, pid} = RoomRegistry.lookup(RoomRegistry, :room_list)
     result = RoomAgent.get_room(pid, name)
+
     if( result != nil) do
       %Data.Message.Room{ name: _name, owner: owner, participants: oldparticipants } = result
-      newParticipant = oldparticipants ++ [ jion ]
-      newRoom = Data.Message.Room.new(name: name, owner: owner, participants: newParticipant)
-      RoomAgent.set_room(pid, name, newRoom)
+      if(Enum.member?(oldparticipants, jion) == false) do
 
-      newRoom |> inspect() |> IO.puts()
-      send_message(socket, "Net.Message.EnterRoom", Data.Message.Room.encode(newRoom))
+        newParticipant = oldparticipants ++ [ jion ]
+        newRoom = Data.Message.Room.new(name: name, owner: owner, participants: newParticipant)
+        RoomAgent.set_room(pid, name, newRoom)
+
+        newRoom |> inspect() |> IO.puts()
+        send_message(socket, "Net.Message.EnterRoom", Data.Message.Room.encode(newRoom))
+      else
+        result |> inspect() |> IO.puts()
+        send_message(socket, "Net.Message.EnterRoom", Data.Message.Room.encode(result))
+      end
     else
       send_message(socket, "Net.Message.EnterRoom", nil)
     end
+  end
+
+  defp run(socket, [tag: "Net.Message.ExitRoom", content: content, packet: _packet], _server) do
+    :io.setopts([encoding: :latin1])
+    room = Data.Message.Room.decode(content);
+    %Data.Message.Room{ name: name, owner: dropout, participants: _participants } = room
+
+    {:ok, pid} = RoomRegistry.lookup(RoomRegistry, :room_list)
+    result = RoomAgent.get_room(pid, name)
+
+    if( result != nil) do
+      %Data.Message.Room{ name: _name, owner: owner, participants: oldparticipants } = result
+      if(Enum.member?(oldparticipants, dropout) == true) do
+
+        newParticipant = List.delete(oldparticipants, dropout)
+        #newParticipant = oldparticipants ++ [ jion ]
+        newRoom = Data.Message.Room.new(name: name, owner: owner, participants: newParticipant)
+        RoomAgent.set_room(pid, name, newRoom)
+        newRoom |> inspect() |> IO.puts()
+        messageRespond = Data.Message.MessageRespond.new(respondState: true)
+        send_message(socket, "Net.Message.ExitRoom", Data.Message.MessageRespond.encode(messageRespond))
+      else
+        send_message(socket, "Net.Message.ExitRoom", nil)
+      end
+    else
+      send_message(socket, "Net.Message.ExitRoom", nil)
+    end
+  end
+
+  defp run(socket, [tag: "Net.Message.SendDialogue", content: content, packet: _packet], _server) do
+    :io.setopts([encoding: :latin1])
+
+    dialogue = %Data.Message.Dialogue{tag: tag, message: _msg, sender: _sender} = Data.Message.Dialogue.decode(content)
+    {:ok, agent} = RoomRegistry.lookup(RoomRegistry, :room_list)
+    room = RoomAgent.get_room(agent, tag)
+    participants = Map.get(room, :participants)
+
+    {:ok, agent} = ClientRegistry.lookup(ClientRegistry, :client_map)
+
+    ClientAgent.map(agent, fn map ->
+      Enum.each(map, fn {keySocket, valueId} ->
+        if(valueId in participants) do
+          send_message(keySocket, "Net.Message.ReceiveDialogue", Data.Message.Dialogue.encode(dialogue))
+        end
+      end)
+      map
+    end)
+
+    messageRespond = Data.Message.MessageRespond.new(respondState: true)
+    send_message(socket, "Net.Message.SendDialogue", Data.Message.MessageRespond.encode(messageRespond))
   end
 
   defp int32_bytes(number) do

@@ -22,7 +22,7 @@ defmodule Client do
   end
 
   def init( [socket: client_socket, server: server] ) do
-    clientPid = self();
+    clientPid = self()
     pid = spawn_link(fn -> client_loop(client_socket, clientPid, server) end)
     :gen_tcp.controlling_process(client_socket , self())
     Logger.info("client init")

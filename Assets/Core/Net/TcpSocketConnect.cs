@@ -156,6 +156,7 @@ namespace Core.Net
 				Debug.LogWarning( "registerHandle twice" );
 				return;
 			}
+
 			handles.Add( tag, func );
 		}
 

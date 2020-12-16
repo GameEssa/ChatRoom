@@ -15,15 +15,12 @@ defmodule Server do
 
   def handle_info({:new_client, clientPid, socket}, state) do
     IO.puts("New Client #{inspect clientPid}  #{inspect socket}" )
-    #:ets.insert(:clientList, { pid, socket })
-    #{:ok, agent} = ClientRegistry.lookup(ClientRegistry, :client_map)
-    #ClientAgent.set_client(agent, socket, {clientPid, id})
     {:noreply, state}
   end
 
   def handle_info({:disconnect, clientPid , socket}, state) do
     IO.puts("Disconnect #{inspect clientPid}")
-    #:ets.delete(:clientList, pid)
+
     {:ok, agent} = ClientRegistry.lookup(ClientRegistry, :client_map)
     id = ClientAgent.get_client(agent, socket)
     ClientAgent.delete_client(agent, socket)
@@ -36,27 +33,30 @@ defmodule Server do
   end
 
   def handle_info(msg, state) do
-    IO.puts "Server Info"
-    msg |> inspect() |> IO.puts()
+    "Server Info" <> msg |> inspect() |> IO.puts()
     {:noreply, state}
   end
 
   def init(socket) do
     :gen_tcp.controlling_process(socket , self())
+
     server = self()
-    pid = spawn_link(fn -> accept(socket, server ) end)
-    #:ets.new(:clientList , [:protected, :named_table, read_concurrency: true]);
+    pid = spawn_link(fn -> accept(socket, server) end)
+
     ClientRegistry.create(ClientRegistry, :client_map)
     RoomRegistry.create(RoomRegistry, :room_list)
-    {:ok, [socket: socket, process: pid] }
+
+    {:ok, [socket: socket, process: pid]}
   end
 
   defp accept(socket ,server) do
     case :gen_tcp.accept(socket) do
       {:ok, client_socket} ->
-        Task.Supervisor.start_child( Server.TaskSupervisor, ClientTask, :start_link, [[socket: client_socket, server: server]])
-      err -> Logger.info( "Linstening #{inspect err}" )
+        #Task.Supervisor.start_child(Server.TaskSupervisor, ClientTask, :start_link, [[socket: client_socket, server: server]])
+        DynamicSupervisor.start_child(Client, [socket: client_socket, server: server])
+      err -> Logger.info("Linstening #{inspect err}")
     end
+
     accept(socket, server)
   end
 end

@@ -8,12 +8,14 @@ defmodule Server.Application do
   @impl true
   def start(_type, _args) do
     children = [
-      { Server.Supervisor , [] }
+      # Starts a worker by calling: Server.Worker.start_link(arg)
+      # {Server.Worker, arg}
+      {Server.Supervisor, []}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
-    opts = [strategy: :one_for_one, name: Server.ApplicationSupervisor]
+    opts = [strategy: :one_for_one, name: Server.Supervisor]
     Supervisor.start_link(children, opts)
   end
 end

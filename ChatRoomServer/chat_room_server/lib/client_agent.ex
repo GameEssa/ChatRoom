@@ -22,4 +22,10 @@ defmodule ClientAgent do
       Map.pop(map, socket)
     end)
   end
+
+  def map(agent, function) do
+    Agent.update(agent, fn map ->
+      function.(map)
+    end)
+  end
 end

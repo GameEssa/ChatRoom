@@ -1,0 +1,7 @@
+syntax = "proto3";
+package Data.Message;
+
+message MessageRespond {
+    bool respondState = 1;
+}
+
