@@ -3,6 +3,6 @@ defmodule ServerTest do
   doctest Server
 
   test "greets the world" do
-    assert Server.hello() == :world
+    assert Server.say() == :read
   end
 end

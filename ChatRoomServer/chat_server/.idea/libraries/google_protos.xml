@@ -1,0 +1,23 @@
+<component name="libraryTable">
+  <library name="google_protos" type="mix">
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/google_protos/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/google_protos/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/google_protos/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/google_protos/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/google_protos/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/google_protos/ebin" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="file://$PROJECT_DIR$/deps/google_protos/lib" />
+      <root url="file://$PROJECT_DIR$/deps/google_protos/lib" />
+      <root url="file://$PROJECT_DIR$/deps/google_protos/lib" />
+      <root url="file://$PROJECT_DIR$/deps/google_protos/lib" />
+      <root url="file://$PROJECT_DIR$/deps/google_protos/lib" />
+      <root url="file://$PROJECT_DIR$/deps/google_protos/lib" />
+      <root url="file://$PROJECT_DIR$/deps/google_protos/lib" />
+      <root url="file://$PROJECT_DIR$/deps/google_protos/lib" />
+    </SOURCES>
+  </library>
+</component>

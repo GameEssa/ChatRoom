@@ -5,7 +5,7 @@ defmodule Server.MixProject do
     [
       app: :chat_server,
       version: "0.1.0",
-      elixir: "~> 1.11",
+      elixir: "~> 1.4",
       start_permanent: Mix.env() == :prod,
       deps: deps()
     ]
