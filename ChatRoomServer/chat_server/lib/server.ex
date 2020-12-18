@@ -28,8 +28,4 @@ defmodule Server do
     end
     accept(socket, server)
   end
-
-  def say() do
-    :read
-  end
 end

@@ -11,6 +11,7 @@ defmodule Server.Supervisor do
     children = [
       { DynamicSupervisor, strategy: :one_for_one, name: Server.DynamicSupervisor},
       { UserRegistry.Supervisor, []},
+      { RoomRegistry.Supervisor, []},
       { Server, [port: 8101] }
     ]
 

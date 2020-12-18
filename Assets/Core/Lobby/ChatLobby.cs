@@ -159,6 +159,8 @@ namespace Core
 				return false;
 			}
 
+			_server.UnRegisterHandle( _loginTag );
+
 			MessageRespond respond = null;
 			if ( pack.data != null && pack.data.Length > 0 )
 			{
@@ -215,20 +217,19 @@ namespace Core
 			}
 			_server.UnRegisterHandle( _createRoomTag );
 
-			Room room = null;
+			MessageRespond respond = null;
 			if ( pack.data != null && pack.data.Length > 0 )
 			{
-				room = Room.Parser.ParseFrom( pack.data );
+				respond = MessageRespond.Parser.ParseFrom( pack.data );
 			}
 
-			if ( room != null )
+			if ( respond != null && respond.RespondState == true )
 			{
 				this.GetAllRoom();
 				return true;
 			}
 			else
 			{
-				Debug.LogWarning( "Already have named room" );
 				return false;
 			}
 			
@@ -240,6 +241,7 @@ namespace Core
 			{
 				return false;
 			}
+			_server.UnRegisterHandle( _enterRoomTag );
 
 			Room room = null;
 			if ( pack.data != null )
@@ -247,7 +249,6 @@ namespace Core
 				room = Room.Parser.ParseFrom( pack.data );
 			}
 
-			_server.UnRegisterHandle( _enterRoomTag );
 			if ( room != null )
 			{
 				if( room.Participants.Contains(_id) == false )
@@ -275,6 +276,7 @@ namespace Core
 			{
 				return false;
 			}
+			_server.UnRegisterHandle( _exitRoomTag );
 
 			MessageRespond respond = null;
 			if( pack.data != null && pack.data.Length > 0 )
